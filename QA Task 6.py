@@ -133,6 +133,79 @@ def vectorize_stories(data, word_index=t.word_index, max_story_len=longest_story
     return (pad_sequences(X, maxlen=max_story_len), pad_sequences(Xq, maxlen=max_question_len), np.array(Y))
 
 inputs_train, questions_train, answers_train = vectorize_stories(training_data)
-
+inputs_test, questions_test, answers_test = vectorize_stories(testing_data)
 #*******************************************************************************************/TAKEN
 
+from keras.models import Sequential, Model
+from keras.layers.embeddings import Embedding
+from keras.layers import Input, Activation, Dense, Permute, Dropout, add, dot, concatenate, LSTM
+
+# We need to create the placeholders
+#The Input function is used to create a keras tensor
+#PLACEHOLDER shape = (max_story_len,batch_size)
+#These are our placeholder for the inputs, ready to recieve batches of the stories and the questions
+input_sequence = Input((longest_story_sentence,)) #As we dont know batch size yet
+question = Input((longest_question_sentence,))
+
+
+#Create input encoder M:
+input_encoder_m = Sequential()
+input_encoder_m.add(Embedding(input_dim=length_vocab,output_dim = 64)) #From paper
+input_encoder_m.add(Dropout(0.3))
+
+#Outputs: (Samples, story_maxlen,embedding_dim) -- Gives a list of the lenght of the samples where each item has the
+#lenght of the max story lenght and every word is embedded in the embbeding dimension
+
+#Create input encoder C:
+input_encoder_c = Sequential()
+input_encoder_c.add(Embedding(input_dim=length_vocab,output_dim = longest_question_sentence)) #From paper
+input_encoder_c.add(Dropout(0.3))
+
+#Outputs: (samples, story_maxlen, max_question_len)
+
+#Create question encoder:
+question_encoder = Sequential()
+question_encoder.add(Embedding(input_dim=length_vocab,output_dim = 64,input_length=longest_question_sentence)) #From paper
+question_encoder.add(Dropout(0.3))
+
+#Outputs: (samples, question_maxlen, embedding_dim)
+
+#Now lets encode the sequences, passing the placeholders into our encoders:
+input_encoded_m = input_encoder_m(input_sequence)
+input_encoded_c = input_encoder_c(input_sequence)
+question_encoded = question_encoder(question)
+
+#Use dot product to compute similarity between input encoded m and question
+#Like in the paper:
+match = dot([input_encoded_m,question_encoded], axes = (2,2))
+match = Activation('softmax')(match)
+
+#For the response we want to add this match with the ouput of input_encoded_c
+response = add([match,input_encoded_c])
+response = Permute((2,1))(response) #Permute Layer: permutes dimensions of input
+
+#Once we have the response we can concatenate it with the question encoded:
+answer = concatenate([response, question_encoded])
+
+# Reduce the answer tensor with a RNN (LSTM)
+answer = LSTM(32)(answer)
+
+#Regularization with dropout:
+answer = Dropout(0.5)(answer)
+#Output layer:
+answer = Dense(length_vocab)(answer) #Output shape: (Samples, Vocab_size) #Yes or no and all 0s
+
+#Now we need to output a probability distribution for the vocab, using softmax:
+answer = Activation('softmax')(answer)
+
+#Now we build the final model:
+model = Model([input_sequence,question], answer)
+
+model.compile(optimizer='rmsprop', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+#Categorical instead of binary cross entropy as because of the way we are training
+#we could actually see any of the words from the vocab as output
+#however, we should only see yes or no
+
+model.summary()
+
+history = model.fit([inputs_train,questions_train],answers_train, batch_size = 32, epochs = 300, validation_data = ([inputs_test,questions_test],answers_test))
