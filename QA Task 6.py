@@ -260,3 +260,14 @@ for key,val in t.word_index.items():
 print(k)
 print(pred_results[0][val_max])
 
+
+
+def input_story():
+    story=[]
+    for i in range(3):
+        story.append(input("Enter Story Sentence :"))
+    question=input("What is the question?:")
+    return story,question
+
+story,question=input_story()
+print(story, question)
