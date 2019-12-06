@@ -2,6 +2,8 @@
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from FromKeras import parse_stories, get_stories #this file used from Keras examples https://keras.io/examples/babi_memnn/
+from keras.models import load_model
+import pickle
 #Get training and test data
 
 training1KPath='C:/Users/206417559/Documents/GitHub/FinalProject/tasks_1-20_v1-2/en/qa6_yes-no-questions_train.txt'
@@ -59,9 +61,19 @@ longest_story_sentence = max(longest_train_sentence,longest_test_sentence)
 longest_question_sentence=max(longest_train_question,longest_test_question)
 
 #Padding
-t=Tokenizer(filters=[]) #ensure that no filters are used. By default this will filter out punctuation.
-t.fit_on_texts(vocab)
-print(t.index_word)
+t = Tokenizer(filters=[])  # ensure that no filters are used. By default this will filter out punctuation.
+
+#Here try to see if there is already a tokenizer saved that has been previously fit to the vocab. If so load
+#that one. The reason is that previously saved keras models will have been trained on that vocab and we want
+#the same results
+try:
+    with open('tokenizer.pickle', 'rb') as handle:
+        t = pickle.load(handle)
+except:
+    t.fit_on_texts(vocab)
+    #print(t.index_word)
+    with open('tokenizer.pickle', 'wb') as handle:
+        pickle.dump(t, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 #Tokenize Story, question, answers
 
@@ -93,10 +105,6 @@ def toSequence(input, t):
 story_sequences=toSequence(stories,t)
 question_sequences=toSequence(questions,t)
 answer_sequences=toSequence(answers,t)
-
-print(stories[0])
-print(questions[0])
-print(answers[0])
 
 
 
@@ -134,6 +142,17 @@ def vectorize_stories(data, word_index=t.word_index, max_story_len=longest_story
 
 inputs_train, questions_train, answers_train = vectorize_stories(training_data)
 inputs_test, questions_test, answers_test = vectorize_stories(testing_data)
+
+
+
+print(stories[0])
+print(questions[0])
+print(answers[0])
+
+print(inputs_train[0])
+print(questions_train[0])
+print(answers_train[0])
+
 #*******************************************************************************************/TAKEN
 
 from keras.models import Sequential, Model
@@ -206,6 +225,38 @@ model.compile(optimizer='rmsprop', loss = 'categorical_crossentropy', metrics = 
 #we could actually see any of the words from the vocab as output
 #however, we should only see yes or no
 
-model.summary()
 
-history = model.fit([inputs_train,questions_train],answers_train, batch_size = 32, epochs = 300, validation_data = ([inputs_test,questions_test],answers_test))
+try:
+    model = load_model('300Epochs.h5')
+    print("Successfully loaded saved model")
+except:
+    history = model.fit([inputs_train,questions_train],answers_train, batch_size = 32, epochs = 300, validation_data = ([inputs_test,questions_test],answers_test))
+    model.save('300Epochs.h5')
+
+
+#model.summary()
+index=25
+print(testing_data[index])
+pred_results = model.predict(([inputs_test,questions_test]))
+
+val_max= np.argmax(pred_results[index])
+#print(val_max)
+for key,val in t.word_index.items():
+    if val == val_max:
+        k = key
+print(k)
+
+print(pred_results[index][val_max])
+
+my_story = 'Sandra picked up the milk . Mary travelled left .'
+my_question = 'Sandra got the milk ?'
+my_data = [(my_story.split(), my_question.split(),'yes')]
+my_story, my_ques, my_ans = vectorize_stories(my_data)
+pred_results = model.predict(([my_story,my_ques]))
+val_max = np.argmax(pred_results[0])
+for key,val in t.word_index.items():
+    if val == val_max:
+        k = key
+print(k)
+print(pred_results[0][val_max])
+
