@@ -253,6 +253,7 @@ print(vocab)
 my_story = 'John put down the apple . Sandra picked up the milk . John journeyed to the office . '
 my_question = 'John in the office ?'
 my_data = [(my_story.split(), my_question.split(),'yes')]
+print(my_data)
 my_story, my_ques, my_ans = vectorize_stories(my_data)
 pred_results = model.predict(([my_story,my_ques]))
 val_max = np.argmax(pred_results[0])
@@ -269,7 +270,17 @@ def input_story():
     for i in range(3):
         story.append(input("Enter Story Sentence :"))
     question=input("What is the question?:")
-    return story,question
+    return ''.join(word for word in story),question
 
-#story,question=input_story()
-#print(story, question)
+story,question=input_story()
+my_story=[(story.split(),question.split(),'yes')]
+print(my_story)
+the_story, the_question, the_ans =vectorize_stories(my_story)
+pred_results = model.predict(([the_story,the_question]))
+val_max = np.argmax(pred_results[0])
+for key,val in t.word_index.items():
+    if val == val_max:
+        k = key
+print(k)
+print(pred_results[0][val_max])
+
