@@ -230,7 +230,7 @@ try:
     model = load_model('300Epochs.h5')
     print("Successfully loaded saved model")
 except:
-    history = model.fit([inputs_train,questions_train],answers_train, batch_size = 32, epochs = 300, validation_data = ([inputs_test,questions_test],answers_test))
+    history = model.fit([inputs_train,questions_train],answers_train, batch_size = 32, epochs = 800, validation_data = ([inputs_test,questions_test],answers_test))
     model.save('300Epochs.h5')
 
 
@@ -269,5 +269,5 @@ def input_story():
     question=input("What is the question?:")
     return story,question
 
-story,question=input_story()
-print(story, question)
+#story,question=input_story()
+#print(story, question)
