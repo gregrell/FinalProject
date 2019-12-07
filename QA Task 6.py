@@ -268,7 +268,7 @@ print(pred_results[0][val_max])
 def input_story():
     story=[]
     for i in range(3):
-        story.append(input("Enter Story Sentence :"))
+        story.append(input("Enter Story Sentence :")) # note: Add a space after the final period, ie. 'apple . '
     question=input("What is the question?:")
     return ''.join(word for word in story),question
 
