@@ -248,8 +248,10 @@ print(k)
 
 print(pred_results[index][val_max])
 
-my_story = 'Sandra picked up the milk . Mary travelled left .'
-my_question = 'Sandra got the milk ?'
+print(vocab)
+
+my_story = 'John put down the apple . Sandra picked up the milk . John journeyed to the office . '
+my_question = 'John in the office ?'
 my_data = [(my_story.split(), my_question.split(),'yes')]
 my_story, my_ques, my_ans = vectorize_stories(my_data)
 pred_results = model.predict(([my_story,my_ques]))
