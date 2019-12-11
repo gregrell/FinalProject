@@ -112,7 +112,7 @@ answer_sequences=toSequence(answers,t)
 #print(question_sequences[0])
 
 
-# Create a function for vectorizing the stories, questions and answers: ****************************TAKEN******
+# Create a function for vectorizing the stories, questions and answers: *This code used from https://github.com/jaimezorno/Deep-Learning-for-NLP-Creating-a-Chatbot/blob/master/Deep%20Learning%20for%20NLP-%20Creating%20a%20chatbot.ipynb
 import numpy as np
 
 def vectorize_stories(data, word_index=t.word_index, max_story_len=longest_story_sentence,
@@ -225,9 +225,10 @@ model.compile(optimizer='rmsprop', loss = 'categorical_crossentropy', metrics = 
 #we could actually see any of the words from the vocab as output
 #however, we should only see yes or no
 
+#Save off the model so that it does not have to train itself each time this chat bot is ran
 
 try:
-    model = load_model('300Epochs.h5')
+    model = load_model('300Epochs.h5') # file says 300 epochs but it was trained on 800
     print("Successfully loaded saved model")
 except:
     history = model.fit([inputs_train,questions_train],answers_train, batch_size = 32, epochs = 800, validation_data = ([inputs_test,questions_test],answers_test))
@@ -237,34 +238,35 @@ except:
 #model.summary()
 index=25
 print(testing_data[index])
-pred_results = model.predict(([inputs_test,questions_test]))
+pred_res = model.predict(([inputs_test, questions_test]))
 
-val_max= np.argmax(pred_results[index])
+val_max= np.argmax(pred_res[index])
 #print(val_max)
 for key,val in t.word_index.items():
     if val == val_max:
         k = key
 print(k)
 
-print(pred_results[index][val_max])
+print(pred_res[index][val_max])
 
 print(vocab)
 
-my_story = 'John put down the apple . Sandra picked up the milk . John journeyed to the office . '
+#a test story - keep it here
+my_s = 'John put down the apple . Sandra picked up the milk . John journeyed to the office . '
 my_question = 'John in the office ?'
-my_data = [(my_story.split(), my_question.split(),'yes')]
+my_data = [(my_s.split(), my_question.split(), 'yes')]
 print(my_data)
-my_story, my_ques, my_ans = vectorize_stories(my_data)
-pred_results = model.predict(([my_story,my_ques]))
-val_max = np.argmax(pred_results[0])
-for key,val in t.word_index.items():
+my_s, my_ques, my_ans = vectorize_stories(my_data)
+pred_res = model.predict(([my_s, my_ques]))
+val_max = np.argmax(pred_res[0])
+for key,val in t.word_index.items(): #This loop from https://github.com/jaimezorno/Deep-Learning-for-NLP-Creating-a-Chatbot/blob/master/Deep%20Learning%20for%20NLP-%20Creating%20a%20chatbot.ipynb
     if val == val_max:
         k = key
 print(k)
-print(pred_results[0][val_max])
+print(pred_res[0][val_max])
 
 
-
+#Here is where a story and question is input line by line
 def input_story():
     story=[]
     for i in range(3):
@@ -273,14 +275,14 @@ def input_story():
     return ''.join(word for word in story),question
 
 story,question=input_story()
-my_story=[(story.split(),question.split(),'yes')]
-print(my_story)
-the_story, the_question, the_ans =vectorize_stories(my_story)
-pred_results = model.predict(([the_story,the_question]))
-val_max = np.argmax(pred_results[0])
-for key,val in t.word_index.items():
+my_s=[(story.split(), question.split(), 'yes')]
+print(my_s)
+the_story, the_question, the_ans =vectorize_stories(my_s)
+pred_res = model.predict(([the_story, the_question]))
+val_max = np.argmax(pred_res[0])
+for key,val in t.word_index.items():#This loop from https://github.com/jaimezorno/Deep-Learning-for-NLP-Creating-a-Chatbot/blob/master/Deep%20Learning%20for%20NLP-%20Creating%20a%20chatbot.ipynb
     if val == val_max:
         k = key
 print(k)
-print(pred_results[0][val_max])
+print(pred_res[0][val_max])
 
