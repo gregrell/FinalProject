@@ -153,7 +153,9 @@ print(inputs_train[0])
 print(questions_train[0])
 print(answers_train[0])
 
-#*******************************************************************************************/TAKEN
+#*******************************************************************************************
+#*This code used from https://github.com/jaimezorno/Deep-Learning-for-NLP-Creating-a-Chatbot/blob/master/Deep%20Learning%20for%20NLP-%20Creating%20a%20chatbot.ipynb
+
 
 from keras.models import Sequential, Model
 from keras.layers.embeddings import Embedding
